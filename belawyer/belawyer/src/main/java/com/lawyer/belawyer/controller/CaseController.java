@@ -2,9 +2,12 @@ package com.lawyer.belawyer.controller;
 
 import com.lawyer.belawyer.data.dto.CaseDto;
 import com.lawyer.belawyer.data.entity.Case;
+import com.lawyer.belawyer.data.entity.Role;
 import com.lawyer.belawyer.service.serviceImpl.CaseServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -38,6 +41,7 @@ public class CaseController {
         return ResponseEntity.ok(caseService.getAllCases());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/delete")
     public ResponseEntity<?> delete(@RequestParam Long id){
         Optional<Case> caseOpt = caseService.getCaseById(id);
@@ -54,6 +58,7 @@ public class CaseController {
         return ResponseEntity.ok(caseService.getAllUnassignedCases());
     }
 
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/assign")
     public ResponseEntity<?> assignCase(@RequestParam Long caseId, @RequestParam String username) {
         caseService.attachCase(caseId,username);

@@ -1,15 +1,14 @@
 package com.lawyer.belawyer.service;
 
-import com.lawyer.belawyer.data.dto.DocumentDto;
 import com.lawyer.belawyer.data.entity.Document;
+import org.springframework.web.multipart.MultipartFile;
+import java.io.IOException;
+import java.util.stream.Stream;
 
-import java.util.List;
-import java.util.Optional;
 
 public interface DocumentService {
-    Document uploadDocument(DocumentDto dto, Long caseId);
-    DocumentDto getDocumentDetails(Long documentId);
-    List<DocumentDto> getAllDocumentById(Long id);
-    Optional<Document> getDocumentById(Long id);
-    Document saveDocument(Document document);
+
+    public Document store(MultipartFile file,Long caseId) throws IOException;
+    public Document getFile(Long id);
+    Stream<Document> getAllFiles();
 }
