@@ -37,7 +37,7 @@ public class AuthenticationService {
                 )
         );
         User user = userService.findByUsername(request.getUsername());
-        String token = jwtService.generateToken(user);
+        String token = jwtService.generateRefreshToken(user);
 
         return new AuthenticationResponse(token);
     }
