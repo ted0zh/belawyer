@@ -25,6 +25,9 @@ public class Document {
     @JoinColumn(name = "case_id", nullable = false)
     private Case caseEntity;
 
+    @Column(columnDefinition = "TEXT")
+    private String summary;
+
     public Document(String fileName, String contentType, byte[] bytes) {
         this.name=fileName;
         this.type=contentType;

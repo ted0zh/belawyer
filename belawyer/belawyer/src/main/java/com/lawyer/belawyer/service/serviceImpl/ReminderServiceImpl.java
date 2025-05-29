@@ -34,11 +34,7 @@ public class ReminderServiceImpl {
         return user.getReminders().stream()
                 .map(reminder -> new ReminderDto(reminder.getTitle(), reminder.getReminderDate()))
                 .collect(Collectors.toList());
-//        Optional<User> userOpt = userRepository.findByUsername(username);
-//        return userOpt.get().getReminders().stream()
-//                .filter(r->r.getUser().equals(username))
-//                .limit(10)
-//                .toList();
+
     }
 
     public Reminder saveReminder(ReminderDto dto, String username) {

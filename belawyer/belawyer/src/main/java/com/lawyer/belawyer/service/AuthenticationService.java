@@ -9,6 +9,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Service;
 
+
 @Service
 public class AuthenticationService {
     private final UserServiceImpl userService;
@@ -23,12 +24,13 @@ public class AuthenticationService {
         this.authenticationManager = authenticationManager;
     }
 
-
+    // Метод за регистрация (изглежда коректен)
     public AuthenticationResponse register(UserDto request){
         User user = userService.createUser(request);
         String token = jwtService.generateToken(user);
-        return new AuthenticationResponse(token);
+        return new AuthenticationResponse(token, user.getUsername());
     }
+
     public AuthenticationResponse authenticate(UserDto request){
         authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
@@ -36,9 +38,11 @@ public class AuthenticationService {
                         request.getPassword()
                 )
         );
-        User user = userService.findByUsername(request.getUsername());
-        String token = jwtService.generateRefreshToken(user);
 
-        return new AuthenticationResponse(token);
+        User user = userService.findByUsername(request.getUsername());
+
+        String jwtToken = jwtService.generateToken(user);
+
+        return new AuthenticationResponse(jwtToken, user.getUsername());
     }
 }

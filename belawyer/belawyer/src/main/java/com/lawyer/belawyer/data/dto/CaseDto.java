@@ -14,4 +14,5 @@ public class CaseDto {
     private String status;
     private String description;
     private String title;
+    private String institution;
 }

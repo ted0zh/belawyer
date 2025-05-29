@@ -20,9 +20,6 @@ public class DocumentMapper {
             return null;
         }
         Document document = new Document();
-        //document.setCategory(dto.getCategory());
-        //document.setUploadedAt(dto.getUploadedAt() != null ? dto.getUploadedAt() : Timestamp.from(Instant.now()));
-        //document.setFilePath(dto.getFilePath());
         return document;
     }
 }
