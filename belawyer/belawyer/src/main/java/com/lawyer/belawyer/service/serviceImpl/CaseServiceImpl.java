@@ -1,6 +1,7 @@
 package com.lawyer.belawyer.service.serviceImpl;
 
 import com.lawyer.belawyer.data.dto.CaseDto;
+import com.lawyer.belawyer.data.dto.CaseResponseDto;
 import com.lawyer.belawyer.data.entity.Case;
 import com.lawyer.belawyer.data.entity.User;
 import com.lawyer.belawyer.data.mapper.CaseMapper;
@@ -25,14 +26,20 @@ public class CaseServiceImpl implements CaseService {
         this.userRepository = userRepository;
     }
 
-    public List<Case> getAllCases() {
-        return caseRepository.findAll();
+    public List<CaseResponseDto> getAllCases() {
+        List<Case> cases = caseRepository.findAll();
+        return caseMapper.toResponseDtoList(cases);
     }
 
-    public Optional<Case> getCaseById(Long id) {
-        return caseRepository.findById(id);
+    public Optional<CaseResponseDto> getCaseByInstitution(String place) {
+        Optional<Case> caseOpt = caseRepository.findByInstitution(place);
+        return caseOpt.map(caseMapper::toResponseDto);
     }
 
+    public Optional<CaseResponseDto> getCaseById(Long id) {
+        Optional<Case> caseOpt = caseRepository.findById(id);
+        return caseOpt.map(caseMapper::toResponseDto);
+    }
     public Case saveCase(CaseDto dto) {
         Case legalCase = caseMapper.toEntity(dto);
 
