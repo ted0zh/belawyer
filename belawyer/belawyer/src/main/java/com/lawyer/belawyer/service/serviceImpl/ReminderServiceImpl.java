@@ -1,48 +1,122 @@
 package com.lawyer.belawyer.service.serviceImpl;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.lawyer.belawyer.data.dto.ReminderDto;
+import com.lawyer.belawyer.data.dto.ReminderResponseDto;
 import com.lawyer.belawyer.data.entity.Reminder;
 import com.lawyer.belawyer.data.entity.User;
 import com.lawyer.belawyer.data.mapper.ReminderMapper;
 import com.lawyer.belawyer.repository.ReminderRepository;
 import com.lawyer.belawyer.repository.UserRepository;
+import com.lawyer.belawyer.service.ReminderService;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
+import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
-public class ReminderServiceImpl {
+public class ReminderServiceImpl implements ReminderService {
+
     private final ReminderRepository reminderRepository;
     private final UserRepository userRepository;
     private final ReminderMapper reminderMapper;
 
-
-    public ReminderServiceImpl(ReminderRepository reminderRepository, UserRepository userRepository, ReminderMapper reminderMapper) {
+    public ReminderServiceImpl(ReminderRepository reminderRepository,
+                               UserRepository userRepository,
+                               ReminderMapper reminderMapper) {
         this.reminderRepository = reminderRepository;
         this.userRepository = userRepository;
         this.reminderMapper = reminderMapper;
     }
 
-    public List<ReminderDto> getRemindersByUsername(String username) {
-        Optional<User> userOpt = userRepository.findByUsername(username);
-        User user = userOpt.orElseThrow(() -> new RuntimeException("User not found"));
 
-        return user.getReminders().stream()
-                .map(reminder -> new ReminderDto(reminder.getTitle(), reminder.getReminderDate()))
-                .collect(Collectors.toList());
+    public ReminderResponseDto saveReminder(ReminderDto dto) {
+        Optional<User> targetOpt = userRepository.findByUsername(dto.getTargetUsername());
+        if (targetOpt.isEmpty()) {
+            throw new RuntimeException("Target user not found");
+        }
+        User targetUser = targetOpt.get();
 
+        Reminder reminder = reminderMapper.toEntity(dto);
+        reminder.setUser(targetUser);
+
+        // if (dto.getCaseId() != null) {
+        //     reminder.setCaseEntity( caseRepository.findById(dto.getCaseId()).orElse(null) );
+        // }
+
+        Reminder saved = reminderRepository.save(reminder);
+
+        return reminderMapper.toResponseDto(saved);
     }
 
-    public Reminder saveReminder(ReminderDto dto, String username) {
-        Optional<User> userOpt = userRepository.findByUsername(username);
-        User user = userOpt.get();
-        Reminder reminder = reminderMapper.toEntity(dto);
-        reminder.setUser(user);
 
-        return reminderRepository.save(reminder);
+    public List<ReminderResponseDto> getRemindersForCurrentUser() {
+        // Вземаме username от SecurityContext
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String currentUsername = (principal instanceof UserDetails)
+                ? ((UserDetails) principal).getUsername()
+                : principal.toString();
+
+        User currentUser = userRepository.findByUsername(currentUsername)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Взимаме всички от user.getReminders(), филтрирани в сервиса
+        List<Reminder> all = reminderRepository.findAll();
+        // Ако сте задали relationship User → Set<Reminder> в ентитета, може да ползвате currentUser.getReminders()
+        // Но тук го правим през репозиторито, за да сме сигурни, че имаме свежи данни.
+
+        return all.stream()
+                .filter(r -> r.getUser().getUsername().equals(currentUsername))
+                .map(reminderMapper::toResponseDto)
+                .collect(Collectors.toList());
+    }
+
+    /**
+     * Връща едно напомняне само ако е насочено към текущия потребител.
+     */
+    public ReminderResponseDto getReminderById(Long id) {
+        Reminder r = reminderRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Reminder not found"));
+
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String currentUsername = (principal instanceof UserDetails)
+                ? ((UserDetails) principal).getUsername()
+                : principal.toString();
+
+        if (!r.getUser().getUsername().equals(currentUsername)) {
+            throw new RuntimeException("Access denied");
+        }
+        return reminderMapper.toResponseDto(r);
+    }
+
+    /**
+     * Изтрива напомняне само ако е насочено към текущия потребител.
+     */
+    public void deleteReminder(Long id) {
+        Optional<Reminder> rOpt = reminderRepository.findById(id);
+        if (rOpt.isEmpty()) {
+            return;
+        }
+        Reminder r = rOpt.get();
+
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        String currentUsername = (principal instanceof UserDetails)
+                ? ((UserDetails) principal).getUsername()
+                : principal.toString();
+
+        if (!r.getUser().getUsername().equals(currentUsername)) {
+            throw new RuntimeException("Access denied");
+        }
+        reminderRepository.delete(r);
+    }
+
+    @Override
+    public List<Reminder> getRemindersByUsername(String username) {
+        return List.of();
     }
 }

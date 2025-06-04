@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -30,8 +31,8 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User updateUser(Long id, UserDto dto){
-        Optional<User> optionalUser = userRepository.findById(id);
+    public User updateUser(String username, UserDto dto){
+        Optional<User> optionalUser = userRepository.findByUsername(username);
         if(optionalUser.isPresent()){
             User updatedUser = optionalUser.get();
             updatedUser.setEmail(dto.getEmail());
@@ -41,10 +42,13 @@ public class UserServiceImpl implements UserService {
             return null;
         }
     }
-
     @Override
-    public List<User> fetchUsers() {
-        return userRepository.findAll();
+    public List<UserDto> fetchUsersDto() {
+        List<User> allUsers = userRepository.findAll();
+        // конвертиране към DTO
+        return allUsers.stream()
+                .map(userMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -52,9 +56,13 @@ public class UserServiceImpl implements UserService {
         return userRepository.findById(id);
     }
 
+
+
     @Override
-    public void deleteUser(Long id) {
-        userRepository.deleteById(id);
+    public void deleteUser(String username) {
+        User existing = userRepository.findByUsername(username)
+                .orElseThrow(() -> new RuntimeException("User not found: " + username));
+        userRepository.delete(existing);
     }
 
     @Override

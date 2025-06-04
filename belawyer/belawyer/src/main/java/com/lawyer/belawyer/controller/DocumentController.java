@@ -34,12 +34,31 @@ public class DocumentController {
         return ResponseEntity.ok(dto);
     }
 
-    @GetMapping("/case/{caseId}")
+    // Endpoint to get a single DocumentSummaryDto by ID
+    @GetMapping("/{id}") // Map to /api/v1/documents/{id}
+    public ResponseEntity<DocumentSummaryDto> getDocumentSummaryById(@PathVariable Long id) {
+        // You need a service method that fetches a Document entity by its ID
+        // and then maps it to a DocumentSummaryDto.
+        // Assuming documentService has a method like getDocumentEntityById(Long id)
+        Document document = documentService.getDocumentEntityById(id); // Implement this service method
+
+        if (document != null) {
+            DocumentSummaryDto dto = mapper.toDto(document); // Ensure this mapper includes caseId
+            return ResponseEntity.ok(dto);
+        } else {
+            // Return 404 Not Found if document is not found
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/bycase/{caseId}")
     public ResponseEntity<List<DocumentSummaryDto>> listByCase(@PathVariable Long caseId) {
-        var list = documentService.listByCase(caseId).stream()
-                .map(mapper::toDto)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(list);
+//        var list = documentService.listByCase(caseId).stream()
+//                .map(mapper::toDto)
+//                .collect(Collectors.toList());
+//        return ResponseEntity.ok(list);
+        List<DocumentSummaryDto> summaries = documentService.listByCaseId(caseId);
+        return ResponseEntity.ok(summaries);
     }
 
     @GetMapping(

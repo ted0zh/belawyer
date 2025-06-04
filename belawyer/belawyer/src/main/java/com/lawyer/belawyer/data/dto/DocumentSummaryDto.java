@@ -10,5 +10,7 @@ import lombok.NoArgsConstructor;
 public class DocumentSummaryDto {
     private Long id;
     private String name;
-    private String summary;
+    private String type;
+    private String summary; // Add caseId
+    // Add other fields needed by frontend: pages, fileSize, lastModified if available
 }

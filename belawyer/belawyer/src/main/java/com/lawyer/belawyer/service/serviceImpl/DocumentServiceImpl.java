@@ -1,5 +1,6 @@
 package com.lawyer.belawyer.service.serviceImpl;
 
+import com.lawyer.belawyer.data.dto.DocumentSummaryDto;
 import com.lawyer.belawyer.data.entity.Case;
 import com.lawyer.belawyer.data.entity.Document;
 import com.lawyer.belawyer.data.mapper.DocumentSummaryMapper;
@@ -22,6 +23,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.*;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
@@ -46,29 +48,47 @@ public class DocumentServiceImpl implements DocumentService {
         this.ocrService = ocrService;
     }
 
+@Override
+public Document store(MultipartFile file, Long caseId) {
+    Case legalCase = caseRepository.findById(caseId)
+            .orElseThrow(() -> new EntityNotFoundException("Case not found: " + caseId));
+    try {
+        // Това вече е чист текст без „бинарно“ съдържание
+        String fullText = ocrService.extractText(file);
+
+        // За да провериш на какво прилича fullText, можеш временно да добавиш:
+        // System.out.println("ЕКСТРАКТИРАН ТЕКСТ (първи 200 знака):");
+        // System.out.println(fullText.substring(0, Math.min(fullText.length(), 200)));
+
+        List<String> summarySentences = summarizer.summarize(fullText, 3);
+        String summary = String.join(" ", summarySentences);
+
+        Document doc = new Document();
+        doc.setName(file.getOriginalFilename());
+        doc.setType(file.getContentType());
+        doc.setData(file.getBytes());
+        doc.setCaseEntity(legalCase);
+        doc.setSummary(summary);
+
+        return documentRepository.save(doc);
+    } catch (Exception e) {
+        throw new RuntimeException("Error processing file", e);
+    }
+}
     @Override
-    public Document store(MultipartFile file, Long caseId) {
-        Case legalCase = caseRepository.findById(caseId)
-                .orElseThrow(() -> new EntityNotFoundException("Case not found: " + caseId));
-        try {
-            String fullText = ocrService.extractText(file);
-            List<String> summarySentences = summarizer.summarize(fullText, 3);
-            String summary = String.join(" ", summarySentences).replace("\0", ""); // remove null bytes
+    @Transactional(readOnly = true)
+    public List<DocumentSummaryDto> listByCaseId(Long caseId) {
+        // Вади всички Document ентити (включително LOB полето) вътре в транзакцията
+        List<Document> docs = documentRepository.findByCaseEntityId(caseId);
 
-            Document doc = new Document();
-            doc.setName(file.getOriginalFilename());
-            doc.setType(file.getContentType());
-            doc.setData(file.getBytes());
-            doc.setCaseEntity(legalCase);
-            doc.setSummary(summary);
-
-            return documentRepository.save(doc);
-        } catch (Exception e) {
-            throw new RuntimeException("Error processing file", e);
-        }
+        // Мапваме всяко Document в DocumentSummaryDto
+        return docs.stream()
+                .map(summaryMapper::toDto)
+                .collect(Collectors.toList());
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Document> listByCase(Long caseId) {
         return documentRepository.findByCaseEntityId(caseId);
     }
@@ -127,6 +147,11 @@ public class DocumentServiceImpl implements DocumentService {
             throw new RuntimeException(
                     "Error extracting text from PDF", e);
         }
+    }
+
+    @Override
+    public Document getDocumentEntityById(Long id) {
+        return documentRepository.findById(id).get();
     }
 }
 

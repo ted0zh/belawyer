@@ -19,6 +19,7 @@ public class Document {
     private String type;
 
     @Lob
+    @Basic(fetch = FetchType.LAZY)
     private byte[] data;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

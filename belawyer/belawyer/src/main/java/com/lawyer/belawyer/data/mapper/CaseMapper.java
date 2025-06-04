@@ -32,7 +32,7 @@ public class CaseMapper {
         Case legalCase = new Case();
         legalCase.setDescription(dto.getDescription());
         legalCase.setTitle(dto.getTitle());
-        legalCase.setStatus(dto.getStatus());
+        legalCase.setStatus("OPEN");
         legalCase.setInstitution(dto.getInstitution());
         return legalCase;
     }

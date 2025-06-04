@@ -40,6 +40,25 @@ public class CaseServiceImpl implements CaseService {
         Optional<Case> caseOpt = caseRepository.findById(id);
         return caseOpt.map(caseMapper::toResponseDto);
     }
+
+    @Override
+    public Optional<CaseResponseDto> updateCase(Long id, CaseDto dto) {
+        Optional<Case> existingOpt = caseRepository.findById(id);
+        if (existingOpt.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Case existing = existingOpt.get();
+        existing.setTitle(dto.getTitle());
+        existing.setDescription(dto.getDescription());
+        existing.setInstitution(dto.getInstitution());
+        existing.setStatus(dto.getStatus());
+        Case saved = caseRepository.save(existing);
+
+        CaseResponseDto responseDto = caseMapper.toResponseDto(saved);
+        return Optional.of(responseDto);
+    }
+
     public Case saveCase(CaseDto dto) {
         Case legalCase = caseMapper.toEntity(dto);
 

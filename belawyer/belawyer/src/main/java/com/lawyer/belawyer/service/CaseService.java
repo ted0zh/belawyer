@@ -14,6 +14,7 @@ public interface CaseService {
 
     Optional<CaseResponseDto> getCaseById(Long id);
 
+    Optional<CaseResponseDto> updateCase(Long id, CaseDto dto);
 
     Case saveCase(CaseDto dto);
 

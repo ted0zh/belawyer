@@ -23,6 +23,7 @@ public class User implements UserDetails {
     private Long id;
 
     private Timestamp createdAt;
+    @Column(name = "username",unique = true)
     private String username;
     private String email;
     private String password;

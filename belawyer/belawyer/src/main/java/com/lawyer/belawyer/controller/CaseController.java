@@ -76,4 +76,13 @@ public class CaseController {
         caseService.attachCase(caseId,username);
         return new ResponseEntity<>(HttpStatus.OK);
     }
+    @PutMapping("/update/{id}")
+    public ResponseEntity<CaseResponseDto> updateCase(
+            @PathVariable Long id,
+            @RequestBody CaseDto dto
+    ) {
+        return caseService.updateCase(id, dto)
+                .map(updatedDto -> ResponseEntity.ok(updatedDto))
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 }
