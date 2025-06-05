@@ -45,10 +45,6 @@ public class ReminderServiceImpl implements ReminderService {
         Reminder reminder = reminderMapper.toEntity(dto);
         reminder.setUser(targetUser);
 
-        // if (dto.getCaseId() != null) {
-        //     reminder.setCaseEntity( caseRepository.findById(dto.getCaseId()).orElse(null) );
-        // }
-
         Reminder saved = reminderRepository.save(reminder);
 
         return reminderMapper.toResponseDto(saved);

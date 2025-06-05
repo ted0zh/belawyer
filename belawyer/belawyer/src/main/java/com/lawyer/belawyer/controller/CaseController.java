@@ -3,11 +3,9 @@ package com.lawyer.belawyer.controller;
 import com.lawyer.belawyer.data.dto.CaseDto;
 import com.lawyer.belawyer.data.dto.CaseResponseDto;
 import com.lawyer.belawyer.data.entity.Case;
-import com.lawyer.belawyer.data.entity.Role;
 import com.lawyer.belawyer.service.serviceImpl.CaseServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
@@ -29,7 +27,7 @@ public class CaseController {
 
     @GetMapping("/fetch")
     public ResponseEntity<List<CaseResponseDto>> getAll(){
-        return ResponseEntity.ok(caseService.getAllCases()); // Assuming a new method in service
+        return ResponseEntity.ok(caseService.getAllCases());
     }
 
     @GetMapping("/get/byInstitution")

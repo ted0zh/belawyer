@@ -250,8 +250,7 @@ public class JwtService {
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
-        // Add roles to the JWT token
-        List<String> roles = userDetails.getAuthorities().stream()
+       List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 

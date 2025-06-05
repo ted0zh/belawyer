@@ -46,7 +46,7 @@ public ResponseEntity<Void> delete(@PathVariable String username) {
     public ResponseEntity<User> get(@RequestParam Long id){
         Optional<User> userOpt = userService.getUser(id);
         if(userOpt.isPresent()){
-            userService.getUser(id);
+            userOpt.get();
             return new ResponseEntity<>(HttpStatus.FOUND);
         }else{
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);

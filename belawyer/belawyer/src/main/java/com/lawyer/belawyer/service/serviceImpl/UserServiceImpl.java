@@ -45,7 +45,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserDto> fetchUsersDto() {
         List<User> allUsers = userRepository.findAll();
-        // конвертиране към DTO
+        //към DTO
         return allUsers.stream()
                 .map(userMapper::toDto)
                 .collect(Collectors.toList());

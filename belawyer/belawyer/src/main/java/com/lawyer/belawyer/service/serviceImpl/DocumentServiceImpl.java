@@ -81,7 +81,6 @@ public Document store(MultipartFile file, Long caseId) {
         // Вади всички Document ентити (включително LOB полето) вътре в транзакцията
         List<Document> docs = documentRepository.findByCaseEntityId(caseId);
 
-        // Мапваме всяко Document в DocumentSummaryDto
         return docs.stream()
                 .map(summaryMapper::toDto)
                 .collect(Collectors.toList());
@@ -124,21 +123,18 @@ public Document store(MultipartFile file, Long caseId) {
                         "Document not found: " + documentId));
 
         try (InputStream in = new ByteArrayInputStream(doc.getData())) {
-            // събираме пълен текст
             BodyContentHandler handler = new BodyContentHandler(-1);
             Metadata metadata = new Metadata();
             ParseContext context = new ParseContext();
             parser.parse(in, handler, metadata, context);
 
             String fullText = handler.toString()
-                    .replace("\0", "")     // махаме null-char, ако има
+                    .replace("\0", "")
                     .trim();
 
-            // пускаме TextRankSummarizer за 3 изречения
             List<String> summarySentences = summarizer.summarize(fullText, 3);
             String summary = String.join(" ", summarySentences);
 
-            // запазваме summary-то в базата
             doc.setSummary(summary);
             documentRepository.save(doc);
 

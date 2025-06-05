@@ -8,19 +8,13 @@ import java.util.List;
 import java.util.Optional;
 
 public interface CaseService {
+
     List<CaseResponseDto> getAllCases();
-
     Optional<CaseResponseDto> getCaseByInstitution(String place);
-
     Optional<CaseResponseDto> getCaseById(Long id);
-
     Optional<CaseResponseDto> updateCase(Long id, CaseDto dto);
-
     Case saveCase(CaseDto dto);
-
     void attachCase(Long caseId,String username);
-
-    void deleteCase(Long id) ;
-
+    void deleteCase(Long id);
 
 }

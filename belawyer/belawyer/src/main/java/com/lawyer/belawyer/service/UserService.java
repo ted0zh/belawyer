@@ -9,6 +9,7 @@ import java.util.Optional;
 
 @Service
 public interface UserService {
+
     User createUser(UserDto dto);
     User updateUser(String username, UserDto dto);
     List<UserDto> fetchUsersDto();

@@ -8,6 +8,7 @@ import com.lawyer.belawyer.data.mapper.CaseMapper;
 import com.lawyer.belawyer.repository.CaseRepository;
 import com.lawyer.belawyer.repository.UserRepository;
 import com.lawyer.belawyer.service.CaseService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -67,11 +68,13 @@ public class CaseServiceImpl implements CaseService {
 
     @Override
     public void attachCase(Long caseId,String username) {
-        Optional<Case> legalCaseOpt  = caseRepository.findById(caseId);
-        Optional<User> user =  userRepository.findByUsername(username);
-        Case legalCase = legalCaseOpt.get();
-        legalCase.setUser(user.get());
+        Case legalCase = caseRepository.findById(caseId)
+                .orElseThrow(() -> new EntityNotFoundException("Case not found: " + caseId));
 
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + username));
+
+        legalCase.setUser(user);
         caseRepository.save(legalCase);
     }
 

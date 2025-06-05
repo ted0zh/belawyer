@@ -19,6 +19,7 @@ public class ReminderController {
         this.reminderService = reminderService;
     }
 
+    //create new reminder
     @PreAuthorize("isAuthenticated()")
     @PostMapping("/create")
     public ResponseEntity<ReminderResponseDto> create(@RequestBody ReminderDto dto) {

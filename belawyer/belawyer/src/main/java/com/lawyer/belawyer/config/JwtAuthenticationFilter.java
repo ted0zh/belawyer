@@ -97,59 +97,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         this.userDetailsService = userDetailsService;
     }
 
-//    @Override
-//    protected void doFilterInternal(@NonNull HttpServletRequest request,
-//                                    @NonNull HttpServletResponse response,
-//                                    @NonNull FilterChain filterChain)
-//            throws ServletException, IOException {
-//
-//        String path = request.getServletPath();
-//
-//        // Skip JWT validation for auth endpoints
-//        if (path.startsWith("/api/v1/auth/register") ||
-//                path.startsWith("/api/v1/auth/login") ||
-//                path.startsWith("/api/v1/auth/refresh")) {
-//            filterChain.doFilter(request, response);
-//            return;
-//        }
-//
-//        String authHeader = request.getHeader("Authorization");
-//        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-//            filterChain.doFilter(request, response);
-//            return;
-//        }
-//
-//        try {
-//            String token = authHeader.substring(7);
-//            String username = jwtService.extractUsername(token);
-//
-//            if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
-//                // Extract roles from JWT token
-//                List<String> roles = jwtService.extractRoles(token);
-//
-//                if (jwtService.isTokenValid(token)) {
-//                    // Create authorities from JWT roles
-//                    List<SimpleGrantedAuthority> authorities = roles.stream()
-//                            .map(SimpleGrantedAuthority::new)
-//                            .collect(Collectors.toList());
-//
-//                    // Create authentication token with roles from JWT
-//                    UsernamePasswordAuthenticationToken authToken =
-//                            new UsernamePasswordAuthenticationToken(username, null, authorities);
-//                    authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-//                    SecurityContextHolder.getContext().setAuthentication(authToken);
-//                }
-//            }
-//        } catch (Exception e) {
-//            log.error("JWT authentication failed: {}", e.getMessage());
-//            // Clear security context on JWT parsing failure
-//            SecurityContextHolder.clearContext();
-//        }
-//
-//        filterChain.doFilter(request, response);
-//    }
-    // ... existing code ...
-
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest request,
                                     @NonNull HttpServletResponse response,

@@ -39,7 +39,7 @@ public class OcrService {
                 out.write(file.getBytes());
             }
 
-            // 2. Определяме MIME тип чрез Tika
+            // 2. Определяме MIME тип
             String mime = tika.detect(tmp);
 
             // 3. Ако файлът е истинско изображение (jpg/png/gif/…),

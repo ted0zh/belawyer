@@ -9,6 +9,7 @@ import java.util.stream.Stream;
 
 
 public interface DocumentService {
+
     List<Document> listByCase(Long caseId);
     Document store(MultipartFile file,Long caseId) throws IOException;
     Document getFile(Long id);
@@ -16,4 +17,5 @@ public interface DocumentService {
     String getSummary(Long documentId);
     Document getDocumentEntityById(Long id);
     List<DocumentSummaryDto> listByCaseId(Long caseId);
+
 }
