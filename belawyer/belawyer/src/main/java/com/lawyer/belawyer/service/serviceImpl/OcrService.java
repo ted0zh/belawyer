@@ -15,6 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import org.xml.sax.SAXException;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -31,53 +33,70 @@ public class OcrService {
         this.tesseract.setLanguage("bul");
     }
     public String extractText(MultipartFile file) {
-        File tmp = null;
+                File tmp = null;
         try {
-            // 1. Създаваме временен файл (за Tika и/или Tesseract)
+            // 1. Create a temporary file for both Tika and Tesseract to read from
             tmp = File.createTempFile("upload-", ".tmp");
+            //направи проверка за тип файл
             try (var out = new FileOutputStream(tmp)) {
                 out.write(file.getBytes());
             }
 
-            // 2. Определяме MIME тип
+            // 2. Detect MIME type via Apache Tika
             String mime = tika.detect(tmp);
+            System.out.println("[OCR] Detected MIME type = " + mime);
 
-            // 3. Ако файлът е истинско изображение (jpg/png/gif/…),
-            //    подаваме го на Tesseract за OCR
+            // 3. If it’s an image, attempt to load via ImageIO
             if (mime.startsWith("image")) {
-                return tesseract.doOCR(tmp).trim();
+                // 3.a) Try to read the file into a BufferedImage
+                BufferedImage bi = ImageIO.read(tmp);
+                if (bi == null) {
+                    // ImageIO could not decode—no plugin recognized this format
+                    throw new RuntimeException(
+                            "Неподдържан формат на изображението (ImageIO.read() върна null). MIME=" + mime
+                    );
+                }
+
+                // 3.b) Write the BufferedImage out as a PNG (always supported)
+                File pngTmp = File.createTempFile("upload-converted-", ".png");
+                try {
+                    ImageIO.write(bi, "png", pngTmp);
+                } catch (IOException e) {
+                    // If writing to PNG fails for any reason, fall back to Tesseract on the original
+                    return tesseract.doOCR(tmp).trim();
+                }
+
+                // 3.c) Run Tesseract OCR on the converted PNG
+                String ocrResult = tesseract.doOCR(pngTmp).trim();
+                pngTmp.delete();
+                return ocrResult;
             }
 
-            // 4. За всички други формати (PDF, DOCX, DOC, TXT и т.н.)
-            //    използваме Apache Tika за извличане на текст
+            // 4. Otherwise (not an image), use Apache Tika to extract text from PDF, DOCX, etc.
             return extractWithTika(tmp);
         } catch (IOException | TesseractException e) {
             throw new RuntimeException("OCR/текстова екстракция неуспешна: " + e.getMessage(), e);
         } finally {
-            // 5. Изтриваме временния файл
+            // 5. Delete the temporary file
             if (tmp != null && tmp.exists()) {
                 tmp.delete();
             }
         }
     }
 
-private String extractWithTika(File file) {
-    // BodyContentHandler(null) ще се погрижи да върне цялото съдържание
-    var handler = new BodyContentHandler(-1);
-    var metadata = new Metadata();
-    Parser parser = new AutoDetectParser();
-    try (InputStream stream = java.nio.file.Files.newInputStream(file.toPath())) {
-        parser.parse(stream, handler, metadata, new ParseContext());
-        // Върни само текста, без контролни символи в излишък
-        return cleanText(handler.toString());
-    } catch (IOException | SAXException | TikaException e) {
-        throw new RuntimeException("Грешка при Tika екстракция: " + e.getMessage(), e);
+    private String extractWithTika(File file) {
+        var handler = new BodyContentHandler(-1);
+        var metadata = new Metadata();
+        Parser parser = new AutoDetectParser();
+        try (InputStream stream = java.nio.file.Files.newInputStream(file.toPath())) {
+            parser.parse(stream, handler, metadata, new ParseContext());
+            return cleanText(handler.toString());
+        } catch (IOException | SAXException | TikaException e) {
+            throw new RuntimeException("Грешка при Tika екстракция: " + e.getMessage(), e);
+        }
     }
-}
     private String cleanText(String raw) {
-        // Унифицираме новите редове
         String withNewlines = raw.replaceAll("\\r\\n?", "\n");
-        // Премахваме всички контролни символи, освен \n и \t
         return withNewlines.replaceAll("[\\p{Cntrl}&&[^\n\t]]", "").trim();
     }
 }

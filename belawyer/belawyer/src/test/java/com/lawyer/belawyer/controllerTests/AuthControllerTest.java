@@ -29,7 +29,6 @@ class AuthControllerTest {
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
-        // Clear any existing Authentication in SecurityContext
         SecurityContextHolder.clearContext();
     }
 
@@ -40,12 +39,8 @@ class AuthControllerTest {
 
     @Test
     void logout_withoutAuthentication_returnsSuccessMessage() {
-        // Arrange: no authentication set in SecurityContext
-
-        // Act
         ResponseEntity<Map<String, String>> response = authController.logout(null);
 
-        // Assert
         assertNotNull(response);
         assertEquals(200, response.getStatusCodeValue());
         Map<String, String> body = response.getBody();
@@ -56,42 +51,33 @@ class AuthControllerTest {
 
     @Test
     void logout_withAuthenticatedUser_returnsSuccessMessage() {
-        // Arrange: set a dummy authenticated principal
         Authentication auth = new UsernamePasswordAuthenticationToken("john_doe", null, null);
         SecurityContextHolder.getContext().setAuthentication(auth);
 
-        // Provide an Authorization header that starts with "Bearer "
         String authHeader = "Bearer dummy.token.value";
 
-        // Act
         ResponseEntity<Map<String, String>> response = authController.logout(authHeader);
 
-        // Assert
         assertNotNull(response);
         assertEquals(200, response.getStatusCodeValue());
         Map<String, String> body = response.getBody();
         assertNotNull(body);
         assertEquals("Logged out successfully", body.get("message"));
         assertEquals("success", body.get("status"));
-        // Logging side‐effect is not verified here
     }
 
     @Test
     void register_delegatesToAuthenticationService_andReturnsSameResponseObject() {
-        // Arrange
         UserDto dto = new UserDto();
         dto.setUsername("alice");
         dto.setEmail("alice@example.com");
         dto.setPassword("password123"); // assuming UserDto has a password field
 
-        // Return a mock AuthenticationResponse (instead of calling a nonexistent constructor)
         AuthenticationResponse mockResponse = mock(AuthenticationResponse.class);
         when(authenticationService.register(dto)).thenReturn(mockResponse);
 
-        // Act
         ResponseEntity<AuthenticationResponse> responseEntity = authController.register(dto);
 
-        // Assert
         assertNotNull(responseEntity);
         assertEquals(200, responseEntity.getStatusCodeValue());
         AuthenticationResponse body = responseEntity.getBody();
@@ -102,18 +88,15 @@ class AuthControllerTest {
 
     @Test
     void login_delegatesToAuthenticationService_andReturnsSameResponseObject() {
-        // Arrange
         UserDto dto = new UserDto();
         dto.setUsername("bob");
-        dto.setPassword("securePass"); // assuming UserDto has a password field
+        dto.setPassword("securePass");
 
         AuthenticationResponse mockResponse = mock(AuthenticationResponse.class);
         when(authenticationService.authenticate(dto)).thenReturn(mockResponse);
 
-        // Act
         ResponseEntity<AuthenticationResponse> responseEntity = authController.login(dto);
 
-        // Assert
         assertNotNull(responseEntity);
         assertEquals(200, responseEntity.getStatusCodeValue());
         AuthenticationResponse body = responseEntity.getBody();

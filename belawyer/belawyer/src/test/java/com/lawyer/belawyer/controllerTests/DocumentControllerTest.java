@@ -36,7 +36,6 @@ class DocumentControllerTest {
 
     @Test
     void upload_shouldReturn200AndDto() throws Exception {
-        // Arrange
         byte[] fileBytes = "Hello World".getBytes(StandardCharsets.UTF_8);
         MockMultipartFile multipartFile = new MockMultipartFile(
                 "file", "test.txt", "text/plain", fileBytes
@@ -57,10 +56,8 @@ class DocumentControllerTest {
         when(documentService.store(multipartFile, caseId)).thenReturn(savedDoc);
         when(mapper.toDto(savedDoc)).thenReturn(dto);
 
-        // Act
         ResponseEntity<DocumentSummaryDto> response = controller.upload(multipartFile, caseId);
 
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertSame(dto, response.getBody());
 
@@ -70,7 +67,6 @@ class DocumentControllerTest {
 
     @Test
     void getDocumentSummaryById_found_returns200AndDto() {
-        // Arrange
         Long docId = 10L;
         Document document = new Document();
         document.setId(docId);
@@ -86,10 +82,8 @@ class DocumentControllerTest {
         when(documentService.getDocumentEntityById(docId)).thenReturn(document);
         when(mapper.toDto(document)).thenReturn(dto);
 
-        // Act
         ResponseEntity<DocumentSummaryDto> response = controller.getDocumentSummaryById(docId);
 
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertSame(dto, response.getBody());
 
@@ -99,14 +93,11 @@ class DocumentControllerTest {
 
     @Test
     void getDocumentSummaryById_notFound_returns404() {
-        // Arrange
         Long docId = 11L;
         when(documentService.getDocumentEntityById(docId)).thenReturn(null);
 
-        // Act
         ResponseEntity<DocumentSummaryDto> response = controller.getDocumentSummaryById(docId);
 
-        // Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
         assertNull(response.getBody());
 
@@ -116,7 +107,6 @@ class DocumentControllerTest {
 
     @Test
     void listByCase_returns200AndListOfDtos() {
-        // Arrange
         Long caseId = 7L;
         DocumentSummaryDto dto1 = new DocumentSummaryDto();
         dto1.setId(100L);
@@ -128,10 +118,8 @@ class DocumentControllerTest {
 
         when(documentService.listByCaseId(caseId)).thenReturn(list);
 
-        // Act
         ResponseEntity<List<DocumentSummaryDto>> response = controller.listByCase(caseId);
 
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(list, response.getBody());
 
@@ -140,15 +128,12 @@ class DocumentControllerTest {
 
     @Test
     void getSummary_returns200AndPlainText() {
-        // Arrange
         Long docId = 20L;
         String summaryText = "This is a summary.";
         when(documentService.getSummary(docId)).thenReturn(summaryText);
 
-        // Act
         ResponseEntity<String> response = controller.getSummary(docId);
 
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(summaryText, response.getBody());
 
@@ -157,7 +142,6 @@ class DocumentControllerTest {
 
     @Test
     void download_returns200AndFileBytesWithHeaders() {
-        // Arrange
         Long docId = 30L;
         byte[] data = "PDFDATA".getBytes(StandardCharsets.UTF_8);
         Document doc = new Document();
@@ -168,10 +152,8 @@ class DocumentControllerTest {
 
         when(documentService.getFile(docId)).thenReturn(doc);
 
-        // Act
         ResponseEntity<byte[]> response = controller.download(docId);
 
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertArrayEquals(data, response.getBody());
 

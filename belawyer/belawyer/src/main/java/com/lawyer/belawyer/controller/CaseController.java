@@ -3,6 +3,7 @@ package com.lawyer.belawyer.controller;
 import com.lawyer.belawyer.data.dto.CaseDto;
 import com.lawyer.belawyer.data.dto.CaseResponseDto;
 import com.lawyer.belawyer.data.entity.Case;
+import com.lawyer.belawyer.data.mapper.CaseMapper;
 import com.lawyer.belawyer.service.serviceImpl.CaseServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,8 +17,10 @@ import java.util.Optional;
 @RequestMapping("/api/v1/case")
 public class CaseController {
     private final CaseServiceImpl caseService;
-    public CaseController(CaseServiceImpl caseService){
+    private final CaseMapper caseMapper;
+    public CaseController(CaseServiceImpl caseService, CaseMapper caseMapper){
         this.caseService=caseService;
+        this.caseMapper = caseMapper;
     }
 
     @PostMapping("/create")
@@ -31,13 +34,19 @@ public class CaseController {
     }
 
     @GetMapping("/get/byInstitution")
-    public ResponseEntity<CaseResponseDto> get(@RequestParam String place){
-        Optional<CaseResponseDto> caseOpt = caseService.getCaseByInstitution(place);
-        if(caseOpt.isPresent()){
-            return ResponseEntity.ok(caseOpt.get());
+    public ResponseEntity<List<CaseResponseDto>> get(@RequestParam String place){
+        List<CaseResponseDto> cases = caseService.getCaseByInstitution(place);
+        if(!cases.isEmpty()){
+            return ResponseEntity.ok(cases);
         }else{
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
+    }
+
+    @GetMapping("/get/byLawyerName")
+    public ResponseEntity<List<CaseResponseDto>> getByUsername(@RequestParam String username) {
+        List<CaseResponseDto> assigned = caseService.getAllCasesByUsername(username);
+        return ResponseEntity.ok(assigned);
     }
 
     @GetMapping("/get/byId")
@@ -51,7 +60,7 @@ public class CaseController {
     }
 
 
-        @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/delete")
     public ResponseEntity<?> delete(@RequestParam Long id){
         Optional<CaseResponseDto> caseOpt = caseService.getCaseById(id);
@@ -64,8 +73,10 @@ public class CaseController {
     }
 
     @GetMapping("/unassigned")
-    public ResponseEntity<List<Case>> getUnassignedCases() {
-        return ResponseEntity.ok(caseService.getAllUnassignedCases());
+    public ResponseEntity<List<CaseResponseDto>> getUnassignedCases() {
+        List<Case> unassigned = caseService.getAllUnassignedCases();
+        List<CaseResponseDto> dtos = caseMapper.toResponseDtoList(unassigned);
+        return ResponseEntity.ok(dtos);
     }
 
     @PreAuthorize("hasRole('ADMIN')")

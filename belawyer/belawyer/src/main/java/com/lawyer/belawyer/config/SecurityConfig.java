@@ -111,8 +111,8 @@ public class SecurityConfig {
 
                         .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
 
-                        .requestMatchers(HttpMethod.GET, "/api/v1/case/**")
-                        .hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/api/v1/case/unassigned")
+                        .hasAnyRole( "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/api/v1/ai")
                                 .hasAnyRole("USER", "ADMIN")
 
@@ -134,6 +134,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.PUT, "/api/v1/documents/**")
                         .hasAnyRole("USER", "ADMIN")
 
+                        .requestMatchers(HttpMethod.GET,"/api/v1/user/fetch").hasAnyRole("USER","ADMIN")
                         .requestMatchers("/api/v1/user/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/documents/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/case/**").hasRole("ADMIN")

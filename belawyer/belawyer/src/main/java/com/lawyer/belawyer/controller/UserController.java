@@ -30,17 +30,17 @@ public class UserController {
     public ResponseEntity<User> update(@RequestBody UserDto dto, @RequestParam String username){
         return ResponseEntity.ok(userService.updateUser(username,dto));
     }
-//
-@PreAuthorize("hasRole('ADMIN')")
-@DeleteMapping("/delete/{username}")
-public ResponseEntity<Void> delete(@PathVariable String username) {
-    try {
-        userService.deleteUser(username);
-        return ResponseEntity.noContent().build();
-    } catch (RuntimeException ex) {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @DeleteMapping("/delete/{username}")
+    public ResponseEntity<Void> delete(@PathVariable String username) {
+        try {
+            userService.deleteUser(username);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
-}
 
     @RequestMapping("/get")
     public ResponseEntity<User> get(@RequestParam Long id){
@@ -52,7 +52,7 @@ public ResponseEntity<Void> delete(@PathVariable String username) {
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
     }
-    @PreAuthorize("hasRole('ADMIN')")
+
     @GetMapping("/fetch")
     public ResponseEntity<List<UserDto>> fetchAllUsers() {
         List<UserDto> all = userService.fetchUsersDto();

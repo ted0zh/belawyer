@@ -33,7 +33,6 @@ class ReminderControllerTest {
 
     @Test
     void create_shouldReturn200AndCreatedDto() {
-        // Arrange
         ReminderDto dto = new ReminderDto();
         dto.setTargetUsername("alice");
         dto.setTitle("Finish report");
@@ -49,10 +48,8 @@ class ReminderControllerTest {
 
         when(reminderService.saveReminder(dto)).thenReturn(responseDto);
 
-        // Act
         ResponseEntity<ReminderResponseDto> response = controller.create(dto);
 
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertSame(responseDto, response.getBody());
 
@@ -61,7 +58,6 @@ class ReminderControllerTest {
 
     @Test
     void getAll_shouldReturn200AndList() {
-        // Arrange
         ReminderResponseDto dto1 = new ReminderResponseDto();
         dto1.setId(1L);
         dto1.setTargetUsername("alice");
@@ -79,10 +75,8 @@ class ReminderControllerTest {
         List<ReminderResponseDto> list = List.of(dto1, dto2);
         when(reminderService.getRemindersForCurrentUser()).thenReturn(list);
 
-        // Act
         ResponseEntity<List<ReminderResponseDto>> response = controller.getAll();
 
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(list, response.getBody());
 
@@ -91,7 +85,6 @@ class ReminderControllerTest {
 
     @Test
     void getOne_shouldReturn200AndDto() {
-        // Arrange
         Long id = 5L;
         ReminderResponseDto dto = new ReminderResponseDto();
         dto.setId(id);
@@ -102,10 +95,8 @@ class ReminderControllerTest {
 
         when(reminderService.getReminderById(id)).thenReturn(dto);
 
-        // Act
         ResponseEntity<ReminderResponseDto> response = controller.getOne(id);
 
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertSame(dto, response.getBody());
 
@@ -114,14 +105,10 @@ class ReminderControllerTest {
 
     @Test
     void delete_shouldReturn200AndInvokeService() {
-        // Arrange
         Long id = 7L;
-        // No need to stub deleteReminder, it returns void
 
-        // Act
         ResponseEntity<?> response = controller.delete(id);
 
-        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNull(response.getBody());
 

@@ -21,8 +21,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.print.Doc;
 import java.io.*;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -33,7 +35,6 @@ public class DocumentServiceImpl implements DocumentService {
     private final TextRankSummarizer summarizer;
     private final DocumentSummaryMapper summaryMapper;
     private final AutoDetectParser parser = new AutoDetectParser();
-    private final Tika tika = new Tika();
     private final OcrService ocrService;
 
     public DocumentServiceImpl(DocumentRepository documentRepository,
@@ -53,12 +54,7 @@ public Document store(MultipartFile file, Long caseId) {
     Case legalCase = caseRepository.findById(caseId)
             .orElseThrow(() -> new EntityNotFoundException("Case not found: " + caseId));
     try {
-        // Това вече е чист текст без „бинарно“ съдържание
         String fullText = ocrService.extractText(file);
-
-        // За да провериш на какво прилича fullText, можеш временно да добавиш:
-        // System.out.println("ЕКСТРАКТИРАН ТЕКСТ (първи 200 знака):");
-        // System.out.println(fullText.substring(0, Math.min(fullText.length(), 200)));
 
         List<String> summarySentences = summarizer.summarize(fullText, 3);
         String summary = String.join(" ", summarySentences);
@@ -78,12 +74,21 @@ public Document store(MultipartFile file, Long caseId) {
     @Override
     @Transactional(readOnly = true)
     public List<DocumentSummaryDto> listByCaseId(Long caseId) {
-        // Вади всички Document ентити (включително LOB полето) вътре в транзакцията
         List<Document> docs = documentRepository.findByCaseEntityId(caseId);
 
         return docs.stream()
                 .map(summaryMapper::toDto)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public void deleteById(Long id) {
+        Optional<Document> docOpt = documentRepository.findById(id);
+        if(docOpt.isPresent()){
+            documentRepository.deleteById(id);
+        }else{
+            throw new EntityNotFoundException("Document not found");
+        }
     }
 
     @Override

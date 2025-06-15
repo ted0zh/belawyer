@@ -38,6 +38,5 @@ public class ReminderDto {
     private LocalDate reminderDate;
     private LocalTime reminderTime;
     private String targetUsername;
-    // Няма нужда да изпращаме sent към клиента
-}
+   }
 

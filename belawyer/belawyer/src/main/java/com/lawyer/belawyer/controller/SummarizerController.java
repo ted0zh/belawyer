@@ -22,7 +22,6 @@ public class SummarizerController {
         this.ocr = ocr;
         this.documentService = documentService;
     }
-    //get a summary when file is uploaded
     @PostMapping("/api/v1/summarize/file")
     public ResponseEntity<List<String>> summarize(
             @RequestParam("file") MultipartFile file,

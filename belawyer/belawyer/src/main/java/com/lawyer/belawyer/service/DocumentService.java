@@ -17,5 +17,5 @@ public interface DocumentService {
     String getSummary(Long documentId);
     Document getDocumentEntityById(Long id);
     List<DocumentSummaryDto> listByCaseId(Long caseId);
-
+    void deleteById(Long id);
 }

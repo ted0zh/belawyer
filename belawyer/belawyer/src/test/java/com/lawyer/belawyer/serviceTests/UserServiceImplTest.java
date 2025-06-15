@@ -45,7 +45,6 @@ class UserServiceImplTest {
 
     @Test
     void testCreateUser_mapsDtoToEntityAndSaves() {
-        // Arrange
         when(userMapper.toEntity(sampleDto)).thenReturn(sampleEntity);
         User savedEntity = new User();
         savedEntity.setId(5L);
@@ -53,10 +52,8 @@ class UserServiceImplTest {
         savedEntity.setEmail("john@example.com");
         when(userRepository.save(sampleEntity)).thenReturn(savedEntity);
 
-        // Act
         User result = userService.createUser(sampleDto);
 
-        // Assert
         assertNotNull(result);
         assertEquals(5L, result.getId());
         assertEquals("john_doe", result.getUsername());
@@ -68,7 +65,6 @@ class UserServiceImplTest {
 
     @Test
     void testUpdateUser_existingUser_updatesAndReturns() {
-        // Arrange
         String existingUsername = "john_doe";
         User existingUser = new User();
         existingUser.setId(10L);
@@ -87,17 +83,14 @@ class UserServiceImplTest {
         when(userRepository.findByUsername(existingUsername)).thenReturn(Optional.of(existingUser));
         when(userRepository.save(existingUser)).thenReturn(updatedUserEntity);
 
-        // Act
         User result = userService.updateUser(existingUsername, updateDto);
 
-        // Assert
         assertNotNull(result);
         assertEquals(10L, result.getId());
         assertEquals("john_doe_new", result.getUsername());
         assertEquals("new@example.com", result.getEmail());
 
         verify(userRepository, times(1)).findByUsername(existingUsername);
-        // existingUser should have been modified before save
         assertEquals("john_doe_new", existingUser.getUsername());
         assertEquals("new@example.com", existingUser.getEmail());
         verify(userRepository, times(1)).save(existingUser);
@@ -105,7 +98,6 @@ class UserServiceImplTest {
 
     @Test
     void testUpdateUser_userNotFound_returnsNull() {
-        // Arrange
         String nonExistent = "unknown";
         UserDto updateDto = new UserDto();
         updateDto.setUsername("whatever");
@@ -113,10 +105,8 @@ class UserServiceImplTest {
 
         when(userRepository.findByUsername(nonExistent)).thenReturn(Optional.empty());
 
-        // Act
         User result = userService.updateUser(nonExistent, updateDto);
 
-        // Assert
         assertNull(result);
         verify(userRepository, times(1)).findByUsername(nonExistent);
         verify(userRepository, never()).save(any());
@@ -124,7 +114,6 @@ class UserServiceImplTest {
 
     @Test
     void testFetchUsersDto_returnsMappedList() {
-        // Arrange
         User user1 = new User();
         user1.setId(1L);
         user1.setUsername("alice");
@@ -147,10 +136,8 @@ class UserServiceImplTest {
         when(userMapper.toDto(user1)).thenReturn(dto1);
         when(userMapper.toDto(user2)).thenReturn(dto2);
 
-        // Act
         List<UserDto> result = userService.fetchUsersDto();
 
-        // Assert
         assertEquals(2, result.size());
         assertTrue(result.containsAll(List.of(dto1, dto2)));
 
@@ -161,16 +148,13 @@ class UserServiceImplTest {
 
     @Test
     void testGetUser_returnsOptionalFromRepository() {
-        // Arrange
         Long userId = 42L;
         User user = new User();
         user.setId(userId);
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
 
-        // Act
         Optional<User> result = userService.getUser(userId);
 
-        // Assert
         assertTrue(result.isPresent());
         assertEquals(userId, result.get().getId());
         verify(userRepository, times(1)).findById(userId);
@@ -178,21 +162,17 @@ class UserServiceImplTest {
 
     @Test
     void testGetUser_notFound_returnsEmpty() {
-        // Arrange
         Long userId = 99L;
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        // Act
         Optional<User> result = userService.getUser(userId);
 
-        // Assert
         assertTrue(result.isEmpty());
         verify(userRepository, times(1)).findById(userId);
     }
 
     @Test
     void testDeleteUser_existingUser_deletes() {
-        // Arrange
         String usernameToDelete = "to_delete";
         User existing = new User();
         existing.setId(7L);
@@ -200,21 +180,17 @@ class UserServiceImplTest {
 
         when(userRepository.findByUsername(usernameToDelete)).thenReturn(Optional.of(existing));
 
-        // Act
         assertDoesNotThrow(() -> userService.deleteUser(usernameToDelete));
 
-        // Assert
         verify(userRepository, times(1)).findByUsername(usernameToDelete);
         verify(userRepository, times(1)).delete(existing);
     }
 
     @Test
     void testDeleteUser_userNotFound_throwsException() {
-        // Arrange
         String nonexistent = "ghost";
         when(userRepository.findByUsername(nonexistent)).thenReturn(Optional.empty());
 
-        // Act & Assert
         RuntimeException ex = assertThrows(RuntimeException.class, () -> userService.deleteUser(nonexistent));
         assertTrue(ex.getMessage().contains("User not found: " + nonexistent));
 
@@ -224,7 +200,6 @@ class UserServiceImplTest {
 
     @Test
     void testFindByUsername_existingUser_returnsUser() {
-        // Arrange
         String username = "jane";
         User user = new User();
         user.setId(15L);
@@ -232,10 +207,8 @@ class UserServiceImplTest {
 
         when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
 
-        // Act
         User result = userService.findByUsername(username);
 
-        // Assert
         assertNotNull(result);
         assertEquals(15L, result.getId());
         assertEquals(username, result.getUsername());
@@ -244,11 +217,9 @@ class UserServiceImplTest {
 
     @Test
     void testFindByUsername_userNotFound_throwsNoSuchElementException() {
-        // Arrange
         String missing = "nobody";
         when(userRepository.findByUsername(missing)).thenReturn(Optional.empty());
 
-        // Act & Assert
         assertThrows(java.util.NoSuchElementException.class, () -> userService.findByUsername(missing));
         verify(userRepository, times(1)).findByUsername(missing);
     }

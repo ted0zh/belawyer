@@ -16,5 +16,6 @@ public class CaseResponseDto {
         private String description;
         private String title;
         private String institution;
+        private String username;
 
 }

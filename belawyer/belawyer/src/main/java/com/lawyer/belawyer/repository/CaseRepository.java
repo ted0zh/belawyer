@@ -11,5 +11,6 @@ import java.util.Optional;
 public interface CaseRepository extends JpaRepository<Case,Long> {
     Optional<Case> findById(Long id);
     List<Case> findByUserIsNull();
-    Optional<Case> findByInstitution(String place);
+    List<Case> findByInstitution(String place);
+    List<Case> findByUserId(Long id);
 }

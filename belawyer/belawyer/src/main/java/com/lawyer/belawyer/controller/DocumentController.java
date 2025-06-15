@@ -65,6 +65,15 @@ public class DocumentController {
                 .contentType(MediaType.parseMediaType(doc.getType()))
                 .body(doc.getData());
     }
+    @DeleteMapping("/delete")
+    public ResponseEntity<Void> delete(@RequestParam Long id){
+        try {
+            documentService.deleteById(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
+    }
 
 }
 

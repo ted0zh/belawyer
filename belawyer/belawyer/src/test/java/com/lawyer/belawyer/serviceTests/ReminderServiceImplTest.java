@@ -45,16 +45,13 @@ class ReminderServiceImplTest {
 
     @BeforeEach
     void setUp() {
-        // Запазваме оригиналния SecurityContext и изчистваме текущия
         originalContext = SecurityContextHolder.getContext();
         SecurityContextHolder.clearContext();
 
-        // Настройваме targetUser (домейн ентитет)
         targetUser = new User();
         targetUser.setId(100L);
         targetUser.setUsername("targetUser");
 
-        // Създаваме UserDetails за аутентициран principal, но без import-ване на org.springframework.security.core.userdetails.User
         org.springframework.security.core.userdetails.User springUser =
                 new org.springframework.security.core.userdetails.User(
                         "currentUser",
@@ -69,30 +66,21 @@ class ReminderServiceImplTest {
 
     @Test
     void testSaveReminder_successful() {
-        // Arrange
         ReminderDto dto = new ReminderDto();
         dto.setTargetUsername("targetUser");
         dto.setTitle("Remember this");
         dto.setReminderDate(LocalDate.of(2025, 6, 10));
         dto.setReminderTime(LocalTime.of(9, 30));
 
-        // Create a dummy “toSave” entity (what the mapper should produce)
         Reminder toSave = new Reminder();
-        // (Optionally: set fields on toSave if you care)
-
-        // Create a “saved” entity (what the repository should return)
         Reminder saved = new Reminder();
         saved.setId(1L);
-        // Assign the same fields as dto so the responseDto can pick them up
         saved.setTitle(dto.getTitle());
         saved.setReminderDate(dto.getReminderDate());
         saved.setReminderTime(dto.getReminderTime());
 
-        // Simulate that the newly‐created saved entity has its “user” set by the service
-        // (this happens inside saveReminder, after the mapper and before saving)
         saved.setUser(targetUser);
 
-        // Set up the DTO that the mapper should produce on response
         ReminderResponseDto responseDto = new ReminderResponseDto();
         responseDto.setId(1L);
         responseDto.setTitle(dto.getTitle());
@@ -100,17 +88,14 @@ class ReminderServiceImplTest {
         responseDto.setReminderTime(dto.getReminderTime());
         responseDto.setTargetUsername("targetUser");
 
-        // Stub the repository and mapper calls:
         when(userRepository.findByUsername("targetUser"))
                 .thenReturn(Optional.of(targetUser));
         when(reminderMapper.toEntity(dto)).thenReturn(toSave);
         when(reminderRepository.save(toSave)).thenReturn(saved);
         when(reminderMapper.toResponseDto(saved)).thenReturn(responseDto);
 
-        // Act
         ReminderResponseDto result = reminderService.saveReminder(dto);
 
-        // Assert
         assertNotNull(result);
         assertEquals(1L, result.getId());
         assertEquals("Remember this", result.getTitle());
@@ -118,7 +103,6 @@ class ReminderServiceImplTest {
         assertEquals(LocalTime.of(9, 30), result.getReminderTime());
         assertEquals("targetUser", result.getTargetUsername());
 
-        // Now verify that each collaborator was invoked exactly once:
         verify(userRepository, times(1)).findByUsername("targetUser");
         verify(reminderMapper, times(1)).toEntity(dto);
         verify(reminderRepository, times(1)).save(toSave);
@@ -148,7 +132,7 @@ class ReminderServiceImplTest {
 
         Reminder r1 = new Reminder();
         r1.setId(10L);
-        r1.setUser(targetUser); // targetUser ≠ currentUser
+        r1.setUser(targetUser);
 
         Reminder r2 = new Reminder();
         r2.setId(11L);
@@ -165,10 +149,8 @@ class ReminderServiceImplTest {
         when(reminderRepository.findAll()).thenReturn(allReminders);
         when(reminderMapper.toResponseDto(r2)).thenReturn(dto1);
 
-        // Act
         List<ReminderResponseDto> result = reminderService.getRemindersForCurrentUser();
 
-        // Assert
         assertEquals(1, result.size());
         assertEquals(11L, result.get(0).getId());
         assertEquals("currentUser", result.get(0).getTargetUsername());
@@ -179,7 +161,6 @@ class ReminderServiceImplTest {
 
     @Test
     void testGetReminderById_successful() {
-        // Arrange
         Long remId = 20L;
         Reminder r = new Reminder();
         r.setId(remId);
@@ -192,10 +173,8 @@ class ReminderServiceImplTest {
         when(reminderRepository.findById(remId)).thenReturn(Optional.of(r));
         when(reminderMapper.toResponseDto(r)).thenReturn(responseDto);
 
-        // Act
         ReminderResponseDto result = reminderService.getReminderById(remId);
 
-        // Assert
         assertNotNull(result);
         assertEquals(remId, result.getId());
         assertEquals("currentUser", result.getTargetUsername());
@@ -275,7 +254,6 @@ class ReminderServiceImplTest {
 
     @Test
     void testGetRemindersByUsername_returnsEmptyList() {
-        // Реализацията връща винаги празен списък
         List<Reminder> result = reminderService.getRemindersByUsername("anyUser");
         assertTrue(result.isEmpty());
     }

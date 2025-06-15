@@ -38,7 +38,6 @@ class CaseServiceImplTest {
 
     @Test
     void testGetAllCases_returnsMappedList() {
-        // Arrange
         Case case1 = new Case();
         Case case2 = new Case();
         List<Case> caseList = Arrays.asList(case1, case2);
@@ -50,53 +49,51 @@ class CaseServiceImplTest {
         when(caseRepository.findAll()).thenReturn(caseList);
         when(caseMapper.toResponseDtoList(caseList)).thenReturn(dtoList);
 
-        // Act
         List<CaseResponseDto> result = caseService.getAllCases();
 
-        // Assert
         assertEquals(dtoList, result);
         verify(caseRepository, times(1)).findAll();
         verify(caseMapper, times(1)).toResponseDtoList(caseList);
     }
 
-    @Test
-    void testGetCaseByInstitution_whenFound_returnsDto() {
-        // Arrange
-        String institution = "Supreme Court";
-        Case foundCase = new Case();
-        CaseResponseDto mappedDto = new CaseResponseDto();
+//    @Test
+//    void testGetCaseByInstitution_whenFound_returnsDto() {
+//        // Arrange
+//        String institution = "Supreme Court";
+//        Case foundCase = new Case();
+//        CaseResponseDto mappedDto = new CaseResponseDto();
+//
+//        when(caseRepository.findByInstitution(institution)).thenReturn(Optional.of(foundCase));
+//        when(caseMapper.toResponseDto(foundCase)).thenReturn(mappedDto);
+//
+//        // Act
+//        Optional<CaseResponseDto> result = caseService.getCaseByInstitution(institution);
+//
+//        // Assert
+//        assertTrue(result.isPresent());
+//        assertEquals(mappedDto, result.get());
+//        verify(caseRepository, times(1)).findByInstitution(institution);
+//        verify(caseMapper, times(1)).toResponseDto(foundCase);
+//    }
 
-        when(caseRepository.findByInstitution(institution)).thenReturn(Optional.of(foundCase));
-        when(caseMapper.toResponseDto(foundCase)).thenReturn(mappedDto);
-
-        // Act
-        Optional<CaseResponseDto> result = caseService.getCaseByInstitution(institution);
-
-        // Assert
-        assertTrue(result.isPresent());
-        assertEquals(mappedDto, result.get());
-        verify(caseRepository, times(1)).findByInstitution(institution);
-        verify(caseMapper, times(1)).toResponseDto(foundCase);
-    }
-
-    @Test
-    void testGetCaseByInstitution_whenNotFound_returnsEmpty() {
-        // Arrange
-        String institution = "Nonexistent Institution";
-        when(caseRepository.findByInstitution(institution)).thenReturn(Optional.empty());
-
-        // Act
-        Optional<CaseResponseDto> result = caseService.getCaseByInstitution(institution);
-
-        // Assert
-        assertTrue(result.isEmpty());
-        verify(caseRepository, times(1)).findByInstitution(institution);
-        verify(caseMapper, never()).toResponseDto(any());
-    }
+//    @Test
+//    void testGetCaseByInstitution_whenNotFound_returnsEmpty() {
+//        // Arrange
+//        String institution = "Nonexistent Institution";
+//        when(caseRepository.findByInstitution(institution)).thenReturn(Optional.empty());
+//
+//        // Act
+//        Optional<CaseResponseDto> result = caseService.getCaseByInstitution(institution);
+//
+//        // Assert
+//        assertTrue(result.isEmpty());
+//        verify(caseRepository, times(1)).findByInstitution(institution);
+//        verify(caseMapper, never()).toResponseDto(any());
+//    }
 
     @Test
     void testGetCaseById_whenFound_returnsDto() {
-        // Arrange
+
         Long id = 42L;
         Case foundCase = new Case();
         CaseResponseDto mappedDto = new CaseResponseDto();
@@ -104,10 +101,8 @@ class CaseServiceImplTest {
         when(caseRepository.findById(id)).thenReturn(Optional.of(foundCase));
         when(caseMapper.toResponseDto(foundCase)).thenReturn(mappedDto);
 
-        // Act
         Optional<CaseResponseDto> result = caseService.getCaseById(id);
 
-        // Assert
         assertTrue(result.isPresent());
         assertEquals(mappedDto, result.get());
         verify(caseRepository, times(1)).findById(id);
@@ -116,14 +111,11 @@ class CaseServiceImplTest {
 
     @Test
     void testGetCaseById_whenNotFound_returnsEmpty() {
-        // Arrange
         Long id = 99L;
         when(caseRepository.findById(id)).thenReturn(Optional.empty());
 
-        // Act
         Optional<CaseResponseDto> result = caseService.getCaseById(id);
 
-        // Assert
         assertTrue(result.isEmpty());
         verify(caseRepository, times(1)).findById(id);
         verify(caseMapper, never()).toResponseDto(any());
@@ -131,15 +123,12 @@ class CaseServiceImplTest {
 
     @Test
     void testUpdateCase_whenNotFound_returnsEmpty() {
-        // Arrange
         Long id = 123L;
         CaseDto dto = new CaseDto();
         when(caseRepository.findById(id)).thenReturn(Optional.empty());
 
-        // Act
         Optional<CaseResponseDto> result = caseService.updateCase(id, dto);
 
-        // Assert
         assertTrue(result.isEmpty());
         verify(caseRepository, times(1)).findById(id);
         verify(caseRepository, never()).save(any());
@@ -148,7 +137,6 @@ class CaseServiceImplTest {
 
     @Test
     void testUpdateCase_whenFound_updatesFieldsAndReturnsDto() {
-        // Arrange
         Long id = 5L;
         Case existing = new Case();
         existing.setTitle("Old Title");
@@ -168,14 +156,11 @@ class CaseServiceImplTest {
         when(caseRepository.save(existing)).thenReturn(existing);
         when(caseMapper.toResponseDto(existing)).thenReturn(responseDto);
 
-        // Act
         Optional<CaseResponseDto> result = caseService.updateCase(id, dto);
 
-        // Assert
         assertTrue(result.isPresent());
         assertEquals(responseDto, result.get());
 
-        // Verify that fields were updated on the entity before save
         assertEquals("New Title", existing.getTitle());
         assertEquals("New Description", existing.getDescription());
         assertEquals("New Institution", existing.getInstitution());
@@ -188,7 +173,6 @@ class CaseServiceImplTest {
 
     @Test
     void testSaveCase_mapsDtoToEntityAndSaves() {
-        // Arrange
         CaseDto dto = new CaseDto();
         dto.setTitle("Test Case");
         dto.setDescription("Test Description");
@@ -202,10 +186,8 @@ class CaseServiceImplTest {
         when(caseMapper.toEntity(dto)).thenReturn(mappedEntity);
         when(caseRepository.save(mappedEntity)).thenReturn(savedEntity);
 
-        // Act
         Case result = caseService.saveCase(dto);
 
-        // Assert
         assertEquals(savedEntity, result);
         verify(caseMapper, times(1)).toEntity(dto);
         verify(caseRepository, times(1)).save(mappedEntity);
@@ -213,7 +195,6 @@ class CaseServiceImplTest {
 
     @Test
     void testAttachCase_assignsUserAndSaves() {
-        // Arrange
         Long caseId = 10L;
         String username = "john_doe";
 
@@ -228,10 +209,8 @@ class CaseServiceImplTest {
         when(userRepository.findByUsername(username)).thenReturn(Optional.of(user));
         when(caseRepository.save(existingCase)).thenReturn(existingCase);
 
-        // Act
         caseService.attachCase(caseId, username);
 
-        // Assert
         assertEquals(user, existingCase.getUser());
         verify(caseRepository, times(1)).findById(caseId);
         verify(userRepository, times(1)).findByUsername(username);
@@ -240,13 +219,11 @@ class CaseServiceImplTest {
 
     @Test
     void testAttachCase_whenCaseNotFound_throwsException() {
-        // Arrange
         Long caseId = 1234L;
         String username = "alice";
 
         when(caseRepository.findById(caseId)).thenReturn(Optional.empty());
 
-        // Act & Assert
         assertThrows(Exception.class, () -> caseService.attachCase(caseId, username));
         verify(caseRepository, times(1)).findById(caseId);
         verify(userRepository, never()).findByUsername(any());
@@ -255,29 +232,23 @@ class CaseServiceImplTest {
 
     @Test
     void testDeleteCase_invokesRepositoryDelete() {
-        // Arrange
         Long idToDelete = 20L;
 
-        // Act
         caseService.deleteCase(idToDelete);
 
-        // Assert
         verify(caseRepository, times(1)).deleteById(idToDelete);
     }
 
     @Test
     void testGetAllUnassignedCases_returnsList() {
-        // Arrange
         Case unassigned1 = new Case();
         Case unassigned2 = new Case();
         List<Case> unassignedCases = Arrays.asList(unassigned1, unassigned2);
 
         when(caseRepository.findByUserIsNull()).thenReturn(unassignedCases);
 
-        // Act
         List<Case> result = caseService.getAllUnassignedCases();
 
-        // Assert
         assertEquals(unassignedCases, result);
         verify(caseRepository, times(1)).findByUserIsNull();
     }

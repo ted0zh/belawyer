@@ -38,7 +38,6 @@ class SummarizerControllerTest {
 
     @Test
     void summarize_withCustomSentenceCount_invokesOcrAndSummarizer() throws Exception {
-        // Arrange
         byte[] fileBytes = "dummy content".getBytes();
         MockMultipartFile file = new MockMultipartFile(
                 "file", "test.pdf", "application/pdf", fileBytes
@@ -50,10 +49,8 @@ class SummarizerControllerTest {
         when(ocrService.extractText(file)).thenReturn(extractedText);
         when(summarizer.summarize(extractedText, sentenceCount)).thenReturn(expectedSummary);
 
-        // Act
         ResponseEntity<List<String>> response = controller.summarize(file, sentenceCount);
 
-        // Assert
         assertEquals(200, response.getStatusCodeValue());
         assertEquals(expectedSummary, response.getBody());
 
@@ -64,7 +61,6 @@ class SummarizerControllerTest {
 
     @Test
     void summarize_withDefaultSentenceCount_invokesOcrAndSummarizerWithThree() throws Exception {
-        // Arrange
         byte[] fileBytes = "another dummy".getBytes();
         MockMultipartFile file = new MockMultipartFile(
                 "file", "image.png", "image/png", fileBytes
@@ -72,16 +68,13 @@ class SummarizerControllerTest {
         String extractedText = "Some other extracted text";
         List<String> expectedSummary = Arrays.asList("A", "B", "C");
 
-        // Simulate defaultValue="3" by passing 3 explicitly in unit test
         int defaultSentences = 3;
 
         when(ocrService.extractText(file)).thenReturn(extractedText);
         when(summarizer.summarize(extractedText, defaultSentences)).thenReturn(expectedSummary);
 
-        // Act
         ResponseEntity<List<String>> response = controller.summarize(file, defaultSentences);
 
-        // Assert
         assertEquals(200, response.getStatusCodeValue());
         assertEquals(expectedSummary, response.getBody());
 

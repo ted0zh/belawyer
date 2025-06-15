@@ -77,7 +77,6 @@ class DocumentServiceImplTest {
         when(summarizer.summarize(extractedText, 3)).thenReturn(summarySentences);
 
         Document toSave = new Document();
-        // The repository.save should return a Document with an ID set
         Document savedDocument = new Document();
         savedDocument.setId(42L);
         when(documentRepository.save(any(Document.class))).thenAnswer(invocation -> {
@@ -86,10 +85,8 @@ class DocumentServiceImplTest {
             return arg;
         });
 
-        // Act
         Document result = documentService.store(multipartFile, caseId);
 
-        // Assert
         assertNotNull(result);
         assertEquals(42L, result.getId());
         assertEquals(filename, result.getName());
@@ -107,7 +104,6 @@ class DocumentServiceImplTest {
 
     @Test
     void testStore_caseNotFound_throwsException() {
-        // Arrange
         Long caseId = 999L;
         MockMultipartFile multipartFile = new MockMultipartFile(
                 "file",
@@ -117,7 +113,6 @@ class DocumentServiceImplTest {
         );
         when(caseRepository.findById(caseId)).thenReturn(Optional.empty());
 
-        // Act & Assert
         EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
                 documentService.store(multipartFile, caseId)
         );
@@ -129,7 +124,6 @@ class DocumentServiceImplTest {
 
     @Test
     void testListByCaseId_returnsMappedDtos() {
-        // Arrange
         Long caseId = 2L;
         Document doc1 = new Document();
         doc1.setId(10L);
@@ -143,10 +137,8 @@ class DocumentServiceImplTest {
         when(summaryMapper.toDto(doc1)).thenReturn(dto1);
         when(summaryMapper.toDto(doc2)).thenReturn(dto2);
 
-        // Act
         List<DocumentSummaryDto> result = documentService.listByCaseId(caseId);
 
-        // Assert
         assertEquals(2, result.size());
         assertTrue(result.containsAll(Arrays.asList(dto1, dto2)));
 
@@ -157,16 +149,13 @@ class DocumentServiceImplTest {
 
     @Test
     void testListByCase_returnsDocuments() {
-        // Arrange
         Long caseId = 3L;
         Document doc = new Document();
         doc.setId(15L);
         when(documentRepository.findByCaseEntityId(caseId)).thenReturn(Collections.singletonList(doc));
 
-        // Act
         List<Document> result = documentService.listByCase(caseId);
 
-        // Assert
         assertEquals(1, result.size());
         assertEquals(doc, result.get(0));
 
@@ -175,27 +164,22 @@ class DocumentServiceImplTest {
 
     @Test
     void testGetFile_found() {
-        // Arrange
         Long docId = 20L;
         Document doc = new Document();
         doc.setId(docId);
         when(documentRepository.findById(docId)).thenReturn(Optional.of(doc));
 
-        // Act
         Document result = documentService.getFile(docId);
 
-        // Assert
         assertEquals(doc, result);
         verify(documentRepository, times(1)).findById(docId);
     }
 
     @Test
     void testGetFile_notFound_throwsException() {
-        // Arrange
         Long docId = 21L;
         when(documentRepository.findById(docId)).thenReturn(Optional.empty());
 
-        // Act & Assert
         EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
                 documentService.getFile(docId)
         );
@@ -206,17 +190,14 @@ class DocumentServiceImplTest {
 
     @Test
     void testGetAllFiles_returnsStreamContents() {
-        // Arrange
         Document d1 = new Document();
         d1.setId(30L);
         Document d2 = new Document();
         d2.setId(31L);
         when(documentRepository.findAll()).thenReturn(Arrays.asList(d1, d2));
 
-        // Act
         List<Document> result = documentService.getAllFiles().collect(Collectors.toList());
 
-        // Assert
         assertEquals(2, result.size());
         assertTrue(result.contains(d1));
         assertTrue(result.contains(d2));
@@ -226,8 +207,6 @@ class DocumentServiceImplTest {
 
     @Test
     void testSummarizePdf_successfulPdfSummarization() throws Exception {
-        // Arrange
-        // Create a simple in-memory PDF with one line of text
         PDDocument pdf = new PDDocument();
         PDPage page = new PDPage();
         pdf.addPage(page);
@@ -253,13 +232,10 @@ class DocumentServiceImplTest {
         );
 
         List<String> summarySentences = Arrays.asList("Summary sentence 1.", "Summary sentence 2.");
-        // Stub summarizer to return our test sentences, ignoring the actual text
         when(summarizer.summarize(anyString(), eq(2))).thenReturn(summarySentences);
 
-        // Act
         List<String> result = documentService.summarizePdf(mockPdfFile, 2);
 
-        // Assert
         assertEquals(2, result.size());
         assertEquals("Summary sentence 1.", result.get(0));
         assertEquals("Summary sentence 2.", result.get(1));
@@ -269,7 +245,6 @@ class DocumentServiceImplTest {
 
     @Test
     void testGetSummary_updatesAndReturnsSummary() throws Exception {
-        // Arrange
         Long docId = 50L;
         byte[] dummyData = "Plain text inside PDF".getBytes();
         Document existingDoc = new Document();
@@ -279,7 +254,6 @@ class DocumentServiceImplTest {
 
         when(documentRepository.findById(docId)).thenReturn(Optional.of(existingDoc));
 
-        // We want to verify clearSummary is called, so we stub it as a no-op
         doNothing().when(documentRepository).clearSummary(docId);
 
         List<String> summarySentences = Arrays.asList("First line of summary.", "Second line.");
@@ -288,10 +262,8 @@ class DocumentServiceImplTest {
         ArgumentCaptor<Document> captor = ArgumentCaptor.forClass(Document.class);
         when(documentRepository.save(captor.capture())).thenAnswer(invocation -> invocation.getArgument(0));
 
-        // Act
         String returnedSummary = documentService.getSummary(docId);
 
-        // Assert
         String expectedCombined = String.join(" ", summarySentences);
         assertEquals(expectedCombined, returnedSummary);
 
@@ -306,11 +278,9 @@ class DocumentServiceImplTest {
 
     @Test
     void testGetSummary_documentNotFound_throwsException() {
-        // Arrange
         Long docId = 60L;
         when(documentRepository.findById(docId)).thenReturn(Optional.empty());
 
-        // Act & Assert
         EntityNotFoundException ex = assertThrows(EntityNotFoundException.class, () ->
                 documentService.getSummary(docId)
         );
@@ -323,27 +293,22 @@ class DocumentServiceImplTest {
 
     @Test
     void testGetDocumentEntityById_found() {
-        // Arrange
         Long docId = 70L;
         Document doc = new Document();
         doc.setId(docId);
         when(documentRepository.findById(docId)).thenReturn(Optional.of(doc));
 
-        // Act
         Document result = documentService.getDocumentEntityById(docId);
 
-        // Assert
         assertEquals(doc, result);
         verify(documentRepository, times(1)).findById(docId);
     }
 
     @Test
     void testGetDocumentEntityById_notFound_throwsNoSuchElementException() {
-        // Arrange
         Long docId = 71L;
         when(documentRepository.findById(docId)).thenReturn(Optional.empty());
 
-        // Act & Assert
         assertThrows(java.util.NoSuchElementException.class, () ->
                 documentService.getDocumentEntityById(docId)
         );

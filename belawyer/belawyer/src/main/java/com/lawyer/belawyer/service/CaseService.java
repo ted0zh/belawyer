@@ -10,11 +10,12 @@ import java.util.Optional;
 public interface CaseService {
 
     List<CaseResponseDto> getAllCases();
-    Optional<CaseResponseDto> getCaseByInstitution(String place);
+    List<CaseResponseDto> getCaseByInstitution(String place);
     Optional<CaseResponseDto> getCaseById(Long id);
     Optional<CaseResponseDto> updateCase(Long id, CaseDto dto);
     Case saveCase(CaseDto dto);
     void attachCase(Long caseId,String username);
     void deleteCase(Long id);
+    List<CaseResponseDto> getAllCasesByUsername(String username);
 
 }

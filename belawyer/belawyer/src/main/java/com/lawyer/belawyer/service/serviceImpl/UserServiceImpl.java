@@ -17,7 +17,6 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserMapper userMapper;
-
     @Autowired
     public UserServiceImpl(UserRepository userRepository, UserMapper userMapper) {
         this.userRepository = userRepository;
@@ -45,7 +44,6 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<UserDto> fetchUsersDto() {
         List<User> allUsers = userRepository.findAll();
-        //към DTO
         return allUsers.stream()
                 .map(userMapper::toDto)
                 .collect(Collectors.toList());

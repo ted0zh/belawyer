@@ -52,7 +52,6 @@ public class ReminderServiceImpl implements ReminderService {
 
 
     public List<ReminderResponseDto> getRemindersForCurrentUser() {
-        // Вземаме username от SecurityContext
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         String currentUsername = (principal instanceof UserDetails)
                 ? ((UserDetails) principal).getUsername()
@@ -61,10 +60,7 @@ public class ReminderServiceImpl implements ReminderService {
         User currentUser = userRepository.findByUsername(currentUsername)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
-        // Взимаме всички от user.getReminders(), филтрирани в сервиса
         List<Reminder> all = reminderRepository.findAll();
-        // Ако сте задали relationship User → Set<Reminder> в ентитета, може да ползвате currentUser.getReminders()
-        // Но тук го правим през репозиторито, за да сме сигурни, че имаме свежи данни.
 
         return all.stream()
                 .filter(r -> r.getUser().getUsername().equals(currentUsername))
@@ -72,9 +68,6 @@ public class ReminderServiceImpl implements ReminderService {
                 .collect(Collectors.toList());
     }
 
-    /**
-     * Връща едно напомняне само ако е насочено към текущия потребител.
-     */
     public ReminderResponseDto getReminderById(Long id) {
         Reminder r = reminderRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Reminder not found"));
@@ -90,9 +83,6 @@ public class ReminderServiceImpl implements ReminderService {
         return reminderMapper.toResponseDto(r);
     }
 
-    /**
-     * Изтрива напомняне само ако е насочено към текущия потребител.
-     */
     public void deleteReminder(Long id) {
         Optional<Reminder> rOpt = reminderRepository.findById(id);
         if (rOpt.isEmpty()) {

@@ -32,9 +32,9 @@ public class CaseServiceImpl implements CaseService {
         return caseMapper.toResponseDtoList(cases);
     }
 
-    public Optional<CaseResponseDto> getCaseByInstitution(String place) {
-        Optional<Case> caseOpt = caseRepository.findByInstitution(place);
-        return caseOpt.map(caseMapper::toResponseDto);
+    public List<CaseResponseDto> getCaseByInstitution(String place) {
+        List<Case> casesByInstitution = caseRepository.findByInstitution(place);
+        return caseMapper.toResponseDtoList(casesByInstitution);
     }
 
     public Optional<CaseResponseDto> getCaseById(Long id) {
@@ -80,6 +80,20 @@ public class CaseServiceImpl implements CaseService {
 
     public void deleteCase(Long id) {
         caseRepository.deleteById(id);
+    }
+
+    @Override
+    public List<CaseResponseDto> getAllCasesByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + username));
+
+        List<Case> listCases = caseRepository.findByUserId(user.getId());
+                if(listCases.isEmpty()){
+                    throw new EntityNotFoundException("No cases found for user: " + username);
+                }
+        List<CaseResponseDto> caseResponseDtoList = caseMapper.toResponseDtoList(listCases);
+
+        return caseResponseDtoList;
     }
 
     public List<Case> getAllUnassignedCases() {
