@@ -36,6 +36,7 @@ public class UserServiceImpl implements UserService {
             User updatedUser = optionalUser.get();
             updatedUser.setEmail(dto.getEmail());
             updatedUser.setUsername(dto.getUsername());
+            updatedUser.setRole(dto.getRole());
             return userRepository.save(updatedUser);
         }else{
             return null;
@@ -60,6 +61,8 @@ public class UserServiceImpl implements UserService {
     public void deleteUser(String username) {
         User existing = userRepository.findByUsername(username)
                 .orElseThrow(() -> new RuntimeException("User not found: " + username));
+        existing.getCases().forEach(c -> c.setUser(null));
+        userRepository.save(existing);
         userRepository.delete(existing);
     }
 

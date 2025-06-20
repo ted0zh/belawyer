@@ -54,6 +54,7 @@ public class CaseServiceImpl implements CaseService {
         existing.setDescription(dto.getDescription());
         existing.setInstitution(dto.getInstitution());
         existing.setStatus(dto.getStatus());
+        existing.setUser(existing.getUser());
         Case saved = caseRepository.save(existing);
 
         CaseResponseDto responseDto = caseMapper.toResponseDto(saved);
