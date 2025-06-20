@@ -4,9 +4,6 @@ import com.lawyer.belawyer.data.dto.DocumentDto;
 import com.lawyer.belawyer.data.entity.Document;
 import org.springframework.stereotype.Component;
 
-import java.sql.Timestamp;
-import java.time.Instant;
-
 @Component
 public class DocumentMapper {
     public DocumentDto toDto(Document document){

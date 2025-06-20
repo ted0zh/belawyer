@@ -1,5 +1,6 @@
 package com.lawyer.belawyer.service;
 
+import com.lawyer.belawyer.data.dto.DocumentSummaryDto;
 import com.lawyer.belawyer.data.entity.Document;
 import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
@@ -8,9 +9,13 @@ import java.util.stream.Stream;
 
 
 public interface DocumentService {
+
     List<Document> listByCase(Long caseId);
     Document store(MultipartFile file,Long caseId) throws IOException;
     Document getFile(Long id);
     Stream<Document> getAllFiles();
     String getSummary(Long documentId);
+    Document getDocumentEntityById(Long id);
+    List<DocumentSummaryDto> listByCaseId(Long caseId);
+    void deleteById(Long id);
 }

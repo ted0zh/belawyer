@@ -9,11 +9,12 @@ import java.util.Optional;
 
 @Service
 public interface UserService {
+
     User createUser(UserDto dto);
-    User updateUser(Long id, UserDto dto);
-    List<User> fetchUsers();
+    User updateUser(String username, UserDto dto);
+    List<UserDto> fetchUsersDto();
     Optional<User> getUser(Long id);
-    void deleteUser(Long id);
+    void deleteUser(String name);
     User findByUsername(String username);
 
 }

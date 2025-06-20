@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -26,18 +27,18 @@ public class UserController {
     }
     @PreAuthorize("hasRole('ADMIN')")
     @RequestMapping("/update")
-    public ResponseEntity<User> update(@RequestBody UserDto dto, @RequestParam Long id){
-        return ResponseEntity.ok(userService.updateUser(id,dto));
+    public ResponseEntity<User> update(@RequestBody UserDto dto, @RequestParam String username){
+        return ResponseEntity.ok(userService.updateUser(username,dto));
     }
+
     @PreAuthorize("hasRole('ADMIN')")
-    @RequestMapping("/delete")
-    public ResponseEntity<?> delete(@RequestParam Long id){
-        Optional<User> userOpt = userService.getUser(id);
-        if(userOpt.isPresent()){
-            userService.deleteUser(id);
-            return new ResponseEntity<>(HttpStatus.ACCEPTED);
-        }else{
-            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    @DeleteMapping("/delete/{username}")
+    public ResponseEntity<Void> delete(@PathVariable String username) {
+        try {
+            userService.deleteUser(username);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
 
@@ -45,10 +46,16 @@ public class UserController {
     public ResponseEntity<User> get(@RequestParam Long id){
         Optional<User> userOpt = userService.getUser(id);
         if(userOpt.isPresent()){
-            userService.getUser(id);
+            userOpt.get();
             return new ResponseEntity<>(HttpStatus.FOUND);
         }else{
             return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
+    }
+
+    @GetMapping("/fetch")
+    public ResponseEntity<List<UserDto>> fetchAllUsers() {
+        List<UserDto> all = userService.fetchUsersDto();
+        return ResponseEntity.ok(all);
     }
 }

@@ -20,7 +20,7 @@ public class Case {
     private String institution;
 
     @ManyToOne
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", nullable = true)
     @JsonIgnore
     private User user;
 

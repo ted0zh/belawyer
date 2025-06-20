@@ -4,7 +4,6 @@ import com.lawyer.belawyer.data.dto.DocumentSummaryDto;
 import com.lawyer.belawyer.data.entity.Document;
 import com.lawyer.belawyer.data.mapper.DocumentSummaryMapper;
 import com.lawyer.belawyer.service.serviceImpl.DocumentServiceImpl;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -12,8 +11,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @RestController
 @RequestMapping("/api/v1/documents")
@@ -34,12 +31,21 @@ public class DocumentController {
         return ResponseEntity.ok(dto);
     }
 
-    @GetMapping("/case/{caseId}")
+    @GetMapping("/{id}")
+    public ResponseEntity<DocumentSummaryDto> getDocumentSummaryById(@PathVariable Long id) {
+        Document document = documentService.getDocumentEntityById(id);
+        if (document != null) {
+            DocumentSummaryDto dto = mapper.toDto(document);
+            return ResponseEntity.ok(dto);
+        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
+    @GetMapping("/bycase/{caseId}")
     public ResponseEntity<List<DocumentSummaryDto>> listByCase(@PathVariable Long caseId) {
-        var list = documentService.listByCase(caseId).stream()
-                .map(mapper::toDto)
-                .collect(Collectors.toList());
-        return ResponseEntity.ok(list);
+        List<DocumentSummaryDto> summaries = documentService.listByCaseId(caseId);
+        return ResponseEntity.ok(summaries);
     }
 
     @GetMapping(
@@ -58,6 +64,15 @@ public class DocumentController {
                 .header("Content-Disposition", "attachment; filename=\"" + doc.getName() + "\"")
                 .contentType(MediaType.parseMediaType(doc.getType()))
                 .body(doc.getData());
+    }
+    @DeleteMapping("/delete")
+    public ResponseEntity<Void> delete(@RequestParam Long id){
+        try {
+            documentService.deleteById(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException ex) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
+        }
     }
 
 }

@@ -1,5 +1,6 @@
 package com.lawyer.belawyer.service.serviceImpl;
 
+import com.lawyer.belawyer.data.dto.DocumentSummaryDto;
 import com.lawyer.belawyer.data.entity.Case;
 import com.lawyer.belawyer.data.entity.Document;
 import com.lawyer.belawyer.data.mapper.DocumentSummaryMapper;
@@ -20,8 +21,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.print.Doc;
 import java.io.*;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Service
@@ -31,7 +35,6 @@ public class DocumentServiceImpl implements DocumentService {
     private final TextRankSummarizer summarizer;
     private final DocumentSummaryMapper summaryMapper;
     private final AutoDetectParser parser = new AutoDetectParser();
-    private final Tika tika = new Tika();
     private final OcrService ocrService;
 
     public DocumentServiceImpl(DocumentRepository documentRepository,
@@ -46,29 +49,50 @@ public class DocumentServiceImpl implements DocumentService {
         this.ocrService = ocrService;
     }
 
+@Override
+public Document store(MultipartFile file, Long caseId) {
+    Case legalCase = caseRepository.findById(caseId)
+            .orElseThrow(() -> new EntityNotFoundException("Case not found: " + caseId));
+    try {
+        String fullText = ocrService.extractText(file);
+
+        List<String> summarySentences = summarizer.summarize(fullText, 3);
+        String summary = String.join(" ", summarySentences);
+
+        Document doc = new Document();
+        doc.setName(file.getOriginalFilename());
+        doc.setType(file.getContentType());
+        doc.setData(file.getBytes());
+        doc.setCaseEntity(legalCase);
+        doc.setSummary(summary);
+
+        return documentRepository.save(doc);
+    } catch (Exception e) {
+        throw new RuntimeException("Error processing file", e);
+    }
+}
     @Override
-    public Document store(MultipartFile file, Long caseId) {
-        Case legalCase = caseRepository.findById(caseId)
-                .orElseThrow(() -> new EntityNotFoundException("Case not found: " + caseId));
-        try {
-            String fullText = ocrService.extractText(file);
-            List<String> summarySentences = summarizer.summarize(fullText, 3);
-            String summary = String.join(" ", summarySentences).replace("\0", ""); // remove null bytes
+    @Transactional(readOnly = true)
+    public List<DocumentSummaryDto> listByCaseId(Long caseId) {
+        List<Document> docs = documentRepository.findByCaseEntityId(caseId);
 
-            Document doc = new Document();
-            doc.setName(file.getOriginalFilename());
-            doc.setType(file.getContentType());
-            doc.setData(file.getBytes());
-            doc.setCaseEntity(legalCase);
-            doc.setSummary(summary);
+        return docs.stream()
+                .map(summaryMapper::toDto)
+                .collect(Collectors.toList());
+    }
 
-            return documentRepository.save(doc);
-        } catch (Exception e) {
-            throw new RuntimeException("Error processing file", e);
+    @Override
+    public void deleteById(Long id) {
+        Optional<Document> docOpt = documentRepository.findById(id);
+        if(docOpt.isPresent()){
+            documentRepository.deleteById(id);
+        }else{
+            throw new EntityNotFoundException("Document not found");
         }
     }
 
     @Override
+    @Transactional(readOnly = true)
     public List<Document> listByCase(Long caseId) {
         return documentRepository.findByCaseEntityId(caseId);
     }
@@ -104,21 +128,18 @@ public class DocumentServiceImpl implements DocumentService {
                         "Document not found: " + documentId));
 
         try (InputStream in = new ByteArrayInputStream(doc.getData())) {
-            // събираме пълен текст
             BodyContentHandler handler = new BodyContentHandler(-1);
             Metadata metadata = new Metadata();
             ParseContext context = new ParseContext();
             parser.parse(in, handler, metadata, context);
 
             String fullText = handler.toString()
-                    .replace("\0", "")     // махаме null-char, ако има
+                    .replace("\0", "")
                     .trim();
 
-            // пускаме TextRankSummarizer за 3 изречения
             List<String> summarySentences = summarizer.summarize(fullText, 3);
             String summary = String.join(" ", summarySentences);
 
-            // запазваме summary-то в базата
             doc.setSummary(summary);
             documentRepository.save(doc);
 
@@ -127,6 +148,11 @@ public class DocumentServiceImpl implements DocumentService {
             throw new RuntimeException(
                     "Error extracting text from PDF", e);
         }
+    }
+
+    @Override
+    public Document getDocumentEntityById(Long id) {
+        return documentRepository.findById(id).get();
     }
 }
 

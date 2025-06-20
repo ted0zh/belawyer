@@ -13,8 +13,8 @@ public class DocumentSummaryMapper {
         return new DocumentSummaryDto(
                 document.getId(),
                 document.getSummary(),
-                document.getName()
-
+                document.getName(),
+                document.getType()
         );
     }
 }

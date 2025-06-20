@@ -8,6 +8,7 @@ import com.lawyer.belawyer.data.mapper.CaseMapper;
 import com.lawyer.belawyer.repository.CaseRepository;
 import com.lawyer.belawyer.repository.UserRepository;
 import com.lawyer.belawyer.service.CaseService;
+import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -31,15 +32,35 @@ public class CaseServiceImpl implements CaseService {
         return caseMapper.toResponseDtoList(cases);
     }
 
-    public Optional<CaseResponseDto> getCaseByInstitution(String place) {
-        Optional<Case> caseOpt = caseRepository.findByInstitution(place);
-        return caseOpt.map(caseMapper::toResponseDto);
+    public List<CaseResponseDto> getCaseByInstitution(String place) {
+        List<Case> casesByInstitution = caseRepository.findByInstitution(place);
+        return caseMapper.toResponseDtoList(casesByInstitution);
     }
 
     public Optional<CaseResponseDto> getCaseById(Long id) {
         Optional<Case> caseOpt = caseRepository.findById(id);
         return caseOpt.map(caseMapper::toResponseDto);
     }
+
+    @Override
+    public Optional<CaseResponseDto> updateCase(Long id, CaseDto dto) {
+        Optional<Case> existingOpt = caseRepository.findById(id);
+        if (existingOpt.isEmpty()) {
+            return Optional.empty();
+        }
+
+        Case existing = existingOpt.get();
+        existing.setTitle(dto.getTitle());
+        existing.setDescription(dto.getDescription());
+        existing.setInstitution(dto.getInstitution());
+        existing.setStatus(dto.getStatus());
+        existing.setUser(existing.getUser());
+        Case saved = caseRepository.save(existing);
+
+        CaseResponseDto responseDto = caseMapper.toResponseDto(saved);
+        return Optional.of(responseDto);
+    }
+
     public Case saveCase(CaseDto dto) {
         Case legalCase = caseMapper.toEntity(dto);
 
@@ -48,16 +69,32 @@ public class CaseServiceImpl implements CaseService {
 
     @Override
     public void attachCase(Long caseId,String username) {
-        Optional<Case> legalCaseOpt  = caseRepository.findById(caseId);
-        Optional<User> user =  userRepository.findByUsername(username);
-        Case legalCase = legalCaseOpt.get();
-        legalCase.setUser(user.get());
+        Case legalCase = caseRepository.findById(caseId)
+                .orElseThrow(() -> new EntityNotFoundException("Case not found: " + caseId));
 
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + username));
+
+        legalCase.setUser(user);
         caseRepository.save(legalCase);
     }
 
     public void deleteCase(Long id) {
         caseRepository.deleteById(id);
+    }
+
+    @Override
+    public List<CaseResponseDto> getAllCasesByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new EntityNotFoundException("User not found: " + username));
+
+        List<Case> listCases = caseRepository.findByUserId(user.getId());
+                if(listCases.isEmpty()){
+                    throw new EntityNotFoundException("No cases found for user: " + username);
+                }
+        List<CaseResponseDto> caseResponseDtoList = caseMapper.toResponseDtoList(listCases);
+
+        return caseResponseDtoList;
     }
 
     public List<Case> getAllUnassignedCases() {

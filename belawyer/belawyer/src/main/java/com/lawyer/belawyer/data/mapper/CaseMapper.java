@@ -34,6 +34,7 @@ public class CaseMapper {
         legalCase.setTitle(dto.getTitle());
         legalCase.setStatus(dto.getStatus());
         legalCase.setInstitution(dto.getInstitution());
+
         return legalCase;
     }
 
@@ -48,6 +49,9 @@ public class CaseMapper {
         dto.setDescription(legalCase.getDescription());
         dto.setTitle(legalCase.getTitle());
         dto.setInstitution(legalCase.getInstitution());
+        dto.setUsername(
+                legalCase.getUser() != null ? legalCase.getUser().getUsername() : null
+        );
         return dto;
     }
 

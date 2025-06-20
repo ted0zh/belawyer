@@ -1,5 +1,6 @@
 package com.lawyer.belawyer.repository;
 
+import com.lawyer.belawyer.data.dto.DocumentSummaryDto;
 import com.lawyer.belawyer.data.entity.Document;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
